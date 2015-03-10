@@ -101,7 +101,8 @@ public class DefaultsCommandTest {
         defaultsCommand.run(null, namespace, configuration);
         
         URL resource = ClassLoader.getSystemClassLoader().getResource("defaults_output.txt");
-        InputStreamReader inputStreamReader = new InputStreamReader(resource.openStream(), Charsets.UTF_8);
-        assertEquals(CharStreams.toString(inputStreamReader), new String(bao.toByteArray()));
+        try(InputStreamReader inputStreamReader = new InputStreamReader(resource.openStream(), Charsets.UTF_8)) {
+            assertEquals(CharStreams.toString(inputStreamReader), new String(bao.toByteArray()));
+        }
     }
 }
