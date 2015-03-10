@@ -5,6 +5,8 @@ import com.example.helloworld.core.Saying;
 import com.example.helloworld.core.Template;
 import com.google.common.base.Optional;
 import io.dropwizard.jersey.caching.CacheControl;
+import io.dropwizard.jersey.params.DateTimeParam;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,11 +33,18 @@ public class HelloWorldResource {
     @Timed(name = "get-requests")
     @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.DAYS)
     public Saying sayHello(@QueryParam("name") Optional<String> name) {
-        return new Saying(counter.incrementAndGet(), template.render(name));
+        return new Saying(counter.incrementAndGet(), template.render(name), DateTime.now());
     }
 
     @POST
     public void receiveHello(@Valid Saying saying) {
         LOGGER.info("Received a saying: {}", saying);
+    }
+    
+    @POST
+    @Path("time")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public void receiveTime(@FormParam("time") DateTimeParam dateTimeParam) {
+        LOGGER.info("Received a saying: {}", dateTimeParam.get());
     }
 }
