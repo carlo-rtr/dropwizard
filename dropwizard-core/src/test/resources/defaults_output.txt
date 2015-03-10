@@ -1,0 +1,20 @@
+# String( Not Empty )
+template: null
+
+# String( Not Empty )
+defaultName: Stranger
+
+bean: 
+
+  # String( NotNull )
+  driverClass: null
+
+  # int( Min: 0; Max: 100 )
+  abandonWhenPercentageFull: 0
+
+  # Duration( NotNull; DurationMin: SECONDS 1 )
+  maxWaitForConnection: 30 seconds
+
+# Map( NotNull )
+viewRendererConfiguration: {}
+

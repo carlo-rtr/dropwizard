@@ -2,6 +2,7 @@ package io.dropwizard;
 
 import io.dropwizard.cli.CheckCommand;
 import io.dropwizard.cli.Cli;
+import io.dropwizard.cli.DefaultsCommand;
 import io.dropwizard.cli.ServerCommand;
 import io.dropwizard.logging.LoggingFactory;
 import io.dropwizard.setup.Bootstrap;
@@ -68,6 +69,7 @@ public abstract class Application<T extends Configuration> {
         final Bootstrap<T> bootstrap = new Bootstrap<>(this);
         bootstrap.addCommand(new ServerCommand<>(this));
         bootstrap.addCommand(new CheckCommand<>(this));
+        bootstrap.addCommand(new DefaultsCommand<>());
         initialize(bootstrap);
         final Cli cli = new Cli(new JarLocation(getClass()), bootstrap, System.out, System.err);
         if (!cli.run(arguments)) {
