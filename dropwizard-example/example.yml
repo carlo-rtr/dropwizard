@@ -66,3 +66,5 @@ logging:
 
   appenders:
     - type: console
+      #logFormat: "[%date{dd MMM yyyy;HH:mm:ss.SSS,UTC}] - [%-5level] [%logger{0}:%line] - %msg %ex{full}%n"
+      logFormat: "[%date{dd MMM yyyy;HH:mm:ss.SSS,UTC}] - [%-5level] [%logger{0}:%L] - %msg %ex{full}%n"
