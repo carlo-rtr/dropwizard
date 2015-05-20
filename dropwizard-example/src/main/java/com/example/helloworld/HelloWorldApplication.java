@@ -14,11 +14,14 @@ import com.example.helloworld.resources.PeopleResource;
 import com.example.helloworld.resources.PersonResource;
 import com.example.helloworld.resources.ProtectedResource;
 import com.example.helloworld.resources.ViewResource;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Function;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
-import io.dropwizard.auth.AuthFactory;
-import io.dropwizard.auth.basic.BasicAuthFactory;
+import io.dropwizard.auth.AuthDynamicFeature;
+import io.dropwizard.auth.AuthFilter;
+import io.dropwizard.auth.AuthValueFactoryProvider;
+import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
+import io.dropwizard.auth.basic.BasicCredentials;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.db.DataSourceFactory;
@@ -27,7 +30,10 @@ import io.dropwizard.migrations.MigrationsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.views.ViewBundle;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 
+import javax.ws.rs.core.SecurityContext;
+import java.security.Principal;
 import java.util.Map;
 
 public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
@@ -82,10 +88,47 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
         environment.healthChecks().register("template", new TemplateHealthCheck(template));
         environment.jersey().register(DateRequiredFeature.class);
+        environment.jersey().register(RolesAllowedDynamicFeature.class);
 
-        environment.jersey().register(AuthFactory.binder(new BasicAuthFactory<>(new ExampleAuthenticator(),
-                                                                 "SUPER SECRET STUFF",
-                                                                 User.class)));
+        final String validUser = "testUser";
+        final String validRole = "admin";
+        final Function<AuthFilter.Tuple, SecurityContext> securityContextFunction =
+            new Function<AuthFilter.Tuple, SecurityContext>() {
+                @Override
+                public SecurityContext apply(final AuthFilter.Tuple input) {
+                    return new SecurityContext() {
+                        @Override
+                        public Principal getUserPrincipal() {
+                            return input.getPrincipal();
+                        }
+
+                        @Override
+                        public boolean isUserInRole(String role) {
+                            return getUserPrincipal() != null
+                                && validUser.equals(getUserPrincipal().getName())
+                                && validRole.equals(role);
+                        }
+
+                        @Override
+                        public boolean isSecure() {
+                            return input.getContainerRequestContext().getSecurityContext().isSecure();
+                        }
+
+                        @Override
+                        public String getAuthenticationScheme() {
+                            return SecurityContext.BASIC_AUTH;
+                        }
+                    };
+                }
+            };
+        final BasicCredentialAuthFilter<User> userBasicCredentialAuthFilter =
+            new BasicCredentialAuthFilter.Builder<User, ExampleAuthenticator>()
+            .setAuthenticator(new ExampleAuthenticator())
+            .setRealm("SUPER SECRET STUFF")
+            .setSecurityContextFunction(securityContextFunction).buildAuthFilter();
+
+        environment.jersey().register(new AuthDynamicFeature(userBasicCredentialAuthFilter));
+        environment.jersey().register(new AuthValueFactoryProvider.Binder(User.class));
         environment.jersey().register(new HelloWorldResource(template));
         environment.jersey().register(new ViewResource());
         environment.jersey().register(new ProtectedResource());
