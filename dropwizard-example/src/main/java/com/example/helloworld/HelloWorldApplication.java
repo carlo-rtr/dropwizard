@@ -1,4 +1,5 @@
 package com.example.helloworld;
+import com.example.helloworld.mappers.CustomExceptionMapper;
 import io.dropwizard.auth.AuthValueFactoryProvider;
 import com.example.helloworld.auth.ExampleAuthenticator;
 import com.example.helloworld.cli.RenderCommand;
@@ -92,6 +93,7 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
                 .setSecurityContextFunction(getSecurityContextFunction())
                 .setRealm("SUPER SECRET STUFF")
                 .buildAuthFilter()));
+        environment.jersey().register(CustomExceptionMapper.class);
         environment.jersey().register(new AuthValueFactoryProvider.Binder(User.class));
         environment.jersey().register(RolesAllowedDynamicFeature.class);
         environment.jersey().register(new HelloWorldResource(template));
