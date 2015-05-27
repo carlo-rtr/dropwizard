@@ -4,6 +4,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilderSpec;
+import com.google.common.cache.CacheStats;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -102,7 +103,8 @@ public class CachingAuthenticatorTest {
     @Test
     public void calculatesCacheStats() throws Exception {
         cached.authenticate("credentials1");
-        assertThat(cached.stats().loadCount()).isEqualTo(1);
+        assertThat(cached.stats().loadCount()).isEqualTo(0);
+        assertThat(cached.size()).isEqualTo(1);
     }
 
     @Test
