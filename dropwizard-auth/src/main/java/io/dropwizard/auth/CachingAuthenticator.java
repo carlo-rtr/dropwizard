@@ -43,6 +43,8 @@ public class CachingAuthenticator<C, P extends Principal> implements Authenticat
         this(metricRegistry, authenticator, CacheBuilder.from(cacheSpec));
     }
 
+    private static class MissingPrincipalException extends Exception {}
+
     /**
      * Creates a new cached authenticator.
      *
@@ -63,7 +65,7 @@ public class CachingAuthenticator<C, P extends Principal> implements Authenticat
                 final Optional<P> result = underlying.authenticate(key);
                 // only cache present values
                 if (!result.isPresent()) {
-                    throw new AuthenticationException("Failed to load security context into cache");
+                    throw new MissingPrincipalException();
                 }
                 return result;
             }
@@ -76,6 +78,9 @@ public class CachingAuthenticator<C, P extends Principal> implements Authenticat
         try {
             return cache.get(credentials);
         } catch (ExecutionException e) {
+            if (e.getCause() instanceof MissingPrincipalException) {
+                return Optional.absent();
+            }
             throw new AuthenticationException(e);
         } finally {
             context.stop();
